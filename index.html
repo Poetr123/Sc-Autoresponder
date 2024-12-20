@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tebak Gambar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        #image {
+            max-width: 80%;
+            max-height: 50vh;
+            margin: 20px 0;
+            border: 2px solid #000;
+        }
+        #clue {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        #input {
+            font-size: 20px;
+            padding: 10px;
+            width: 80%;
+            margin: 10px 0;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #result {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tebak Gambar</h1>
+    <div>
+        <img id="image" alt="Gambar soal">
+        <div id="clue"></div>
+        <input id="input" type="text" placeholder="Jawaban Anda">
+        <br>
+        <button onclick="checkAnswer()">Yakin</button>
+        <button onclick="loadQuestion()">Ganti Soal</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        const apiUrl = "https://skizoasia.xyz/api/game/tebakgambar?apikey=poetz";
+        let currentAnswer = "";
+
+        function loadQuestion() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("image").src = data.img;
+                    document.getElementById("clue").textContent = data.clue;
+                    currentAnswer = data.jwb.toLowerCase();
+                    document.getElementById("input").value = "";
+                    document.getElementById("result").textContent = "";
+                })
+                .catch(error => console.error("Error fetching question:", error));
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById("input").value.toLowerCase();
+            if (userAnswer === currentAnswer) {
+                document.getElementById("result").textContent = "Benar! Soal berikutnya akan muncul...";
+                setTimeout(loadQuestion, Math.random() * 2000 + 1000); // Jeda 1-3 detik
+            } else {
+                document.getElementById("result").textContent = "Salah! Coba lagi.";
+            }
+        }
+
+        // Muat soal pertama
+        loadQuestion();
+    </script>
+</body>
+</html>
