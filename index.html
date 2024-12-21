@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        /* Styling untuk hamburger menu */
+        #hamburger {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        #hamburger span {
+            display: block;
+            width: 30px;
+            height: 4px;
+            background-color: #333;
+            margin: 6px 0;
+            transition: 0.4s;
+        }
+
+        .menu {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #333;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .menu a:hover {
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .menu.open {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Styling untuk saran */
+        .content-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            background-color: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        #suggestion-box {
+            width: 80%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            height: 150px;
+            font-size: 16px;
+            resize: none;
+        }
+
+        #submit-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #5c6bc0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #submit-btn:hover {
+            background-color: #3f4c96;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hamburger Menu -->
+    <div id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div id="menu" class="menu">
+        <a href="family100.html">Family 100💯🇮🇩</a>
+        <a href="tebakgambar.html">Tebak Gambar🧐🖼️</a>
+    </div>
+
+    <!-- Content untuk Kolom Saran -->
+    <div class="content-container">
+        <div>
+            <h2>Berikan Saran Anda</h2>
+            <textarea id="suggestion-box" placeholder="Tulis saran atau masukan Anda di sini..."></textarea><br>
+            <button id="submit-btn">Kirim Saran</button>
+        </div>
+    </div>
+
+    <script>
+        // Fungsi untuk menampilkan/hide menu hamburger
+        document.getElementById("hamburger").addEventListener("click", () => {
+            document.getElementById("menu").classList.toggle("open");
+        });
+
+        // Fungsi untuk mengirim saran dan menyimpannya dalam saran.json
+        document.getElementById("submit-btn").addEventListener("click", () => {
+            const suggestion = document.getElementById("suggestion-box").value.trim();
+
+            if (suggestion) {
+                // Menyimpan saran dalam saran.json dengan fetch
+                fetch('saran.json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ suggestion: suggestion })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert("Saran berhasil dikirim!");
+                    document.getElementById("suggestion-box").value = ""; // Reset textarea
+                })
+                .catch(error => {
+                    alert("Terjadi kesalahan, coba lagi.");
+                });
+            } else {
+                alert("Tolong masukkan saran Anda!");
+            }
+        });
+    </script>
+
+</body>
+</html>
