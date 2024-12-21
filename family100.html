@@ -1,149 +1,206 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family 100 Game</title>
+    <title>Family 100</title>
     <style>
-        /* Gaya sederhana untuk halaman */
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
+            text-align: center;
+            background: linear-gradient(to bottom, #74ebd5, #acb6e5);
             margin: 0;
+            color: #333;
+        }
+
+        h1 {
+            margin: 20px;
+            font-size: 2.5rem;
+            color: #fff;
         }
 
         .container {
-            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
             padding: 20px;
-            border-radius: 8px;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .question {
-            font-size: 24px;
-            font-weight: bold;
+        #points {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
         }
 
-        .answers {
-            margin-top: 20px;
+        #question {
+            font-size: 1.2rem;
+            margin: 15px 0;
         }
 
-        .answer-input {
-            width: 200px;
-            padding: 8px;
+        .answer-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .answer-slot {
+            width: 120px;
+            height: 50px;
             margin: 5px;
-            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #333;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            background: #f9f9f9;
+        }
+
+        input {
+            width: 70%;
+            height: 40px;
+            font-size: 1rem;
             text-align: center;
+            margin: 20px auto;
+            border: 2px solid #333;
+            border-radius: 5px;
         }
 
-        .submit-btn {
+        button {
+            font-size: 1rem;
             padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
+            margin: 10px;
+            background-color: #333;
+            color: #fff;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
+            transition: 0.3s ease;
         }
 
-        .submit-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+        button:hover {
+            background-color: #555;
         }
 
-        .message {
-            font-size: 18px;
-            color: red;
-            margin-top: 10px;
+        .celebration {
+            display: none;
+            font-size: 3rem;
+            color: #ffc107;
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: drop 5s forwards;
         }
 
-        /* Animation for correct answer message */
-        .correct-message {
-            color: green;
-            font-weight: bold;
-            font-size: 20px;
+        @keyframes drop {
+            0% { top: -100px; opacity: 0; }
+            50% { top: 50%; opacity: 1; }
+            100% { top: 110%; opacity: 0; }
         }
-
     </style>
 </head>
 <body>
-
+    <h1>Family 100</h1>
     <div class="container">
-        <div class="question" id="question"></div>
-        <div class="answers" id="answers"></div>
-        <button class="submit-btn" id="submitBtn" onclick="checkAnswers()">Kirim Jawaban</button>
-        <div class="message" id="message"></div>
+        <div id="points">Poin: 0</div>
+        <div id="question">Memuat soal...</div>
+        <div class="answer-box" id="answers"></div>
+        <input type="text" id="userAnswer" placeholder="Masukkan jawaban...">
+        <br>
+        <button onclick="submitAnswer()">Kirim Jawaban</button>
     </div>
+    <div class="celebration" id="celebration">🎉</div>
 
     <script>
-        let currentQuestionIndex = 0;
-        let questions = [];
-        let userAnswers = [];
+        const apiUrl = "https://skizoasia.xyz/api/game/family100?apikey=poetz";
+        let currentQuestion = {};
+        let points = 0;
+        let wrongAttempts = 0;
+        const maxWrong = 3;
 
-        async function fetchQuestions() {
-            const response = await fetch('https://skizoasia.xyz/api/game/family100?apikey=poetz');
-            const data = await response.json();
-            questions = data.soal;
-            displayQuestion();
+        function fetchQuestion() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    currentQuestion = {
+                        soal: data.soal,
+                        jawaban: data.jawaban.map(j => j.toLowerCase())
+                    };
+                    initializeGame();
+                })
+                .catch(error => console.error("Error fetching question:", error));
         }
 
-        function displayQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                document.getElementById('question').innerText = "Semua soal selesai!";
-                document.getElementById('answers').innerHTML = "";
-                document.getElementById('submitBtn').disabled = true;
-                return;
-            }
+        function initializeGame() {
+            document.getElementById("question").textContent = currentQuestion.soal;
+            const answersContainer = document.getElementById("answers");
 
-            const question = questions[currentQuestionIndex];
-            document.getElementById('question').innerText = question.soal;
+            answersContainer.innerHTML = "";
+            points = 0;
+            wrongAttempts = 0;
 
-            const answerFields = question.jawaban.map((answer, index) => {
-                return `
-                    <input type="text" class="answer-input" id="answer${index}" placeholder="Jawaban ${index + 1}">
-                `;
-            }).join('');
+            currentQuestion.jawaban.forEach(() => {
+                const slot = document.createElement("div");
+                slot.className = "answer-slot";
+                answersContainer.appendChild(slot);
+            });
 
-            document.getElementById('answers').innerHTML = answerFields;
-            document.getElementById('submitBtn').disabled = false;
-            document.getElementById('message').innerText = "";
+            updatePoints();
         }
 
-        function checkAnswers() {
-            const question = questions[currentQuestionIndex];
-            let correctCount = 0;
+        function updatePoints() {
+            const wrongIcons = "❌".repeat(wrongAttempts);
+            document.getElementById("points").textContent = wrongAttempts < maxWrong 
+                ? `Poin: ${points} ${wrongIcons}`
+                : `Poin: ${wrongIcons}`;
+        }
 
-            // Get user input
-            const answers = question.jawaban;
-            for (let i = 0; i < answers.length; i++) {
-                const userAnswer = document.getElementById(`answer${i}`).value.trim().toLowerCase();
-                if (userAnswer === answers[i].toLowerCase()) {
-                    correctCount++;
-                }
-            }
+        function submitAnswer() {
+            const userAnswer = document.getElementById("userAnswer").value.toLowerCase();
+            const answerIndex = currentQuestion.jawaban.indexOf(userAnswer);
+            const answersSlots = document.querySelectorAll(".answer-slot");
 
-            if (correctCount === answers.length) {
-                document.getElementById('message').innerText = "Jawaban benar! Menunggu soal selanjutnya...";
-                document.getElementById('message').classList.add('correct-message');
-                setTimeout(() => {
-                    currentQuestionIndex++;
-                    displayQuestion();
-                }, 2000); // Tunggu 2 detik sebelum ke soal berikutnya
+            if (answerIndex !== -1 && !answersSlots[answerIndex].textContent) {
+                answersSlots[answerIndex].textContent = currentQuestion.jawaban[answerIndex];
+                points += currentQuestion.jawaban.length - answerIndex;
+                document.getElementById("userAnswer").value = "";
+                showCelebration();
             } else {
-                document.getElementById('message').innerText = "Jawaban salah, coba lagi!";
+                wrongAttempts++;
             }
+
+            // Cek apakah semua jawaban sudah terisi
+            if (isAllAnswersFilled()) {
+                // Jika semua jawaban terisi, tampilkan soal baru
+                setTimeout(() => {
+                    fetchQuestion();
+                }, 2000); // Waktu delay sebelum soal baru dimuat
+            }
+
+            if (wrongAttempts >= maxWrong) resetGame();
+            updatePoints();
         }
 
-        // Initialize game
-        fetchQuestions();
-    </script>
+        function showCelebration() {
+            const celebration = document.getElementById("celebration");
+            celebration.style.display = "block";
+            setTimeout(() => (celebration.style.display = "none"), 5000);
+        }
 
+        function isAllAnswersFilled() {
+            const answersSlots = document.querySelectorAll(".answer-slot");
+            return [...answersSlots].every(slot => slot.textContent !== "");
+        }
+
+        function resetGame() {
+            alert("Kesempatan habis! Permainan akan dimulai ulang.");
+            fetchQuestion();
+        }
+
+        fetchQuestion();
+    </script>
 </body>
 </html>
